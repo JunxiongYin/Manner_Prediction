@@ -1,0 +1,95 @@
+---
+title: "Activity Recognition through Machine Learning"
+author: "Junxiong"
+date: "5/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+For this project, we will predict the manner in which people did the exercise by using the data from accelerometers on the belt, forearm, arm, and dumbell. We mainly use the methods of random forest and decision tree from machine learning.
+
+## Data
+
+The data for this project come from this source, [s](http://groupware.les.inf.puc-rio.br/har). We will first load the data as below.
+
+```{r}
+trainUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+if(!"train.csv" %in% dir()){
+    download.file(trainUrl, "train.csv")
+}
+if(!"test.csv" %in% dir()){
+    download.file(testUrl, "test.csv")
+}
+
+train <- read.csv("train.csv")
+test <- read.csv("test.csv")
+```
+
+## Data Processing
+
+After taking a look at the data, we find there are too many variables and also many empty entries. Thus, we will remove some of the low variable covariates and null-value covariates.
+
+```{r}
+library(caret)
+set.seed(314)
+nsv <- nearZeroVar(train)
+trainNSV <- train[,-nsv]
+trainNSV <- trainNSV[,(colSums(is.na(trainNSV))==0)]
+```
+
+The first six columns of trainNSV contain informtaion about time stamp and 
+users, which are not necessary for prediction. Therefore, we will remove them 
+as well.
+
+```{r}
+trainNSV <- trainNSV[,-c(1:6)]
+```
+
+For cross validation, we will subsample the training set.
+
+```{r}
+inTrain <- createDataPartition(y=trainNSV$classe, p=0.6, list=FALSE)
+inTrainNSV <- trainNSV[inTrain, ]
+cvTrainNSV <- trainNSV[-inTrain, ]
+```
+
+## Model selection
+
+```{r}
+# Random forest
+library(randomForest)
+mod_rf <- randomForest(classe~., data=inTrainNSV)
+pred_rf <- predict(mod_rf, cvTrainNSV)
+confusionMatrix(pred_rf, cvTrainNSV$classe)
+```
+
+```{r}
+# Decision tree
+library(rpart)
+mod_rp <- rpart(classe~., data=inTrainNSV)
+library(rattle)
+fancyRpartPlot(mod_rp)
+pred_rp <- predict(mod_rp, cvTrainNSV, type="class")
+confusionMatrix(pred_rp, cvTrainNSV$classe)
+```
+
+From the output, we can see that random forest is better.
+
+## Prediction
+
+```{r}
+predict(mod_rf, test)
+```
+
+
+
+
+
+
+
