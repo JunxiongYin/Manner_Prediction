@@ -2,7 +2,9 @@
 title: "Activity Recognition through Machine Learning"
 author: "Junxiong"
 date: "5/8/2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -69,6 +71,12 @@ pred_rf <- predict(mod_rf, cvTrainNSV)
 confusionMatrix(pred_rf, cvTrainNSV$classe)
 ```
 
+The out of sample error is 
+
+```{r}
+1-confusionMatrix(pred_rf, cvTrainNSV$classe)[[3]][1]
+```
+
 ```{r}
 # Decision tree
 library(rpart)
@@ -79,6 +87,11 @@ pred_rp <- predict(mod_rp, cvTrainNSV, type="class")
 confusionMatrix(pred_rp, cvTrainNSV$classe)
 ```
 
+The out of sample error is 
+
+```{r}
+1-confusionMatrix(pred_rp, cvTrainNSV$classe)[[3]][1]
+```
 From the output, we can see that random forest is better.
 
 ## Prediction
@@ -86,10 +99,3 @@ From the output, we can see that random forest is better.
 ```{r}
 predict(mod_rf, test)
 ```
-
-
-
-
-
-
-
